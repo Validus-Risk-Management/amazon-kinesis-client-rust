@@ -26,12 +26,12 @@ pub(crate) enum Message {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct InitPayload {
-    shard_id: String,
+    pub shard_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct RecordPayload {
+pub struct Record {
     #[serde(rename = "data", with = "Base64Standard")]
     raw_data: Vec<u8>,
     partition_key: String,
@@ -43,7 +43,7 @@ pub(crate) struct RecordPayload {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ProcessRecordPayload {
-    records: Vec<RecordPayload>,
+    pub records: Vec<Record>,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
