@@ -2,7 +2,9 @@ use base64::STANDARD;
 
 use base64_serde::base64_serde_type;
 use eyre::Result;
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use serde_json::Result as JsonResult;
 
 base64_serde_type!(Base64Standard, STANDARD);
 
@@ -40,6 +42,12 @@ pub struct Record {
     approximate_arrival_timestamp: f64,
 }
 
+impl Record {
+    pub fn json<T: DeserializeOwned>(&self) -> JsonResult<T> {
+        serde_json::from_slice::<T>(self.raw_data.as_slice())
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ProcessRecordPayload {
@@ -67,6 +75,11 @@ pub(crate) fn parse_message(payload: &str) -> Result<Message> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[derive(Debug, PartialEq, serde::Deserialize)]
+    struct DummyPayload {
+        foo: String,
+    }
 
     #[test]
     fn parse_initialize() {
@@ -101,6 +114,28 @@ mod tests {
                 "Hello, this is a test.",
                 String::from_utf8_lossy(&records[0].raw_data)
             );
+        } else {
+            panic!("Did not match expected ProcessRecords event.");
+        }
+    }
+
+    #[test]
+    fn parse_json_process_record() {
+        let given = "{\"action\": \"processRecords\", \
+        \"records\": [{\
+            \"data\": \"eyJmb28iOiAiYmFyIn0=\",\
+            \"partitionKey\": \"1\",\
+            \"sequenceNumber\": \"49590338271490256608559692538361571095921575989136588898\",\
+            \"approximateArrivalTimestamp\": 1570887011763.01}]}";
+        let parsed = parse_message(given).unwrap();
+
+        if let Message::ProcessRecords(ProcessRecordPayload { records }) = parsed {
+            assert_eq!(records.len(), 1);
+            let actual = records[0].json::<DummyPayload>().unwrap();
+            let expected = DummyPayload {
+                foo: "bar".to_string(),
+            };
+            assert_eq!(expected, actual);
         } else {
             panic!("Did not match expected ProcessRecords event.");
         }
