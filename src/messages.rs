@@ -1,8 +1,8 @@
 use base64::STANDARD;
 
 use base64_serde::base64_serde_type;
+use eyre::Result;
 use serde::{Deserialize, Serialize};
-use serde_json::Result as JsonResult;
 
 base64_serde_type!(Base64Standard, STANDARD);
 
@@ -59,10 +59,9 @@ pub(crate) struct CheckpointWithErrorPayload {
     error: String,
 }
 
-#[allow(dead_code)] // TODO: not used anywhere yet, remove when it's used
-pub(crate) fn parse_message(payload: &str) -> JsonResult<Message> {
-    // TODO: we should map to our own error types
-    serde_json::from_str::<Message>(payload)
+pub(crate) fn parse_message(payload: &str) -> Result<Message> {
+    let message = serde_json::from_str::<Message>(payload)?;
+    Ok(message)
 }
 
 #[cfg(test)]
