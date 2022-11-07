@@ -35,7 +35,7 @@ fn tick(processor: &mut impl Processor) -> Result<()> {
         Message::Checkpoint(_) => panic!("unexpected checkpointing"),
     }
 
-    acknowledge_message(message);
+    acknowledge_message(message)?;
 
     Ok(())
 }
