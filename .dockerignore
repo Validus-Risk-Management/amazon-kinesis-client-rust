@@ -1,7 +1,10 @@
-/target/
+debug/
+target/
+
 Cargo.lock
 
 **/*.rs.bk
 
 .fleet
+.vscode
 .idea
