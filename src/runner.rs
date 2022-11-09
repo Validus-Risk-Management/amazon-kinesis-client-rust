@@ -27,9 +27,9 @@ fn tick(processor: &mut impl Processor) -> Result<()> {
         Message::ProcessRecords(ProcessRecordPayload { records }) => {
             processor.process_records(records)
         }
-        Message::LeaseLost => {}
-        Message::ShardEnded(_) => {}
-        Message::ShutdownRequested(_) => {}
+        Message::LeaseLost => processor.lease_lost(),
+        Message::ShardEnded(_) => processor.shard_ended(),
+        Message::ShutdownRequested(_) => processor.shutdown_requested(),
         // This should only be sent in response to a checkpoint message sent to the daemon,
         // we should never receive it unexpectedly here
         Message::Checkpoint(_) => panic!("unexpected checkpointing"),
