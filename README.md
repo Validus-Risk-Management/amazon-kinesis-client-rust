@@ -15,8 +15,10 @@ A sample of this can be found in the [examples](./examples/sample.properties)
 
 An example consumer of this Docker Image would be:
 
+**Compile with buster because amazoncoretto uses buster**
+
 ```dockerfile
-FROM rust:1.65.0-slim-bullseye as builder
+FROM rust:1.65.0-slim-buster as builder
 COPY . .
 RUN cargo build --release
 
