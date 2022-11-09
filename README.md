@@ -15,15 +15,15 @@ A sample of this can be found in the [examples](./examples/sample.properties)
 
 An example consumer of this Docker Image would be:
 
-**Compile with buster because amazoncoretto uses buster**
+**Compile with al2 because amazoncoretto uses al2**
 
 ```dockerfile
-FROM rust:1.65.0-slim-buster as builder
+FROM amazonlinux:2 as builder
+RUN amazon-linux-extras install rust1
 COPY . .
 RUN cargo build --release
 
-# TODO add actual tag
-FROM kcl-rust:amazoncorretto-16-kcl-2.06 as runner
+FROM ghcr.io/validus-risk-management/amazon-kinesis-client-rust:latest as runner
 COPY my-configs/app.properties app.properties
 COPY --from=builder target/release/my-app target/release/my-app
 ```
