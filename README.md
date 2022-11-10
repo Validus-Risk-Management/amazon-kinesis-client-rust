@@ -19,7 +19,9 @@ An example consumer of this Docker Image would be:
 
 ```dockerfile
 FROM amazonlinux:2 as builder
-RUN amazon-linux-extras install rust1
+RUN yum update -y && yum install -y gcc
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 COPY . .
 RUN cargo build --release
 
