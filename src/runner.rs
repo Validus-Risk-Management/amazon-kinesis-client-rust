@@ -1,26 +1,19 @@
-use std::io;
-
 use eyre::Result;
 
 use crate::messages::{parse_message, InitPayload, Message, ProcessRecordPayload};
 use crate::processor::Processor;
+use crate::reader::{InputReader, StdinReader};
 use crate::responses::acknowledge_message;
 
-fn read_next() -> Result<String> {
-    let mut input = String::new();
-    io::stdin().read_line(&mut input)?;
-
-    Ok(input)
-}
-
 pub fn run(processor: &mut impl Processor) {
+    let mut reader = StdinReader::new();
     loop {
-        tick(processor).unwrap();
+        tick(processor, &mut reader).unwrap();
     }
 }
 
-fn tick(processor: &mut impl Processor) -> Result<()> {
-    let next = read_next()?;
+pub fn tick(processor: &mut impl Processor, input_reader: &mut impl InputReader) -> Result<()> {
+    let next = input_reader.next()?;
     let message = parse_message(&next)?;
     match &message {
         Message::Initialize(InitPayload { shard_id }) => processor.initialize(shard_id),
