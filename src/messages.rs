@@ -31,15 +31,15 @@ pub(crate) struct InitPayload {
     pub shard_id: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
     #[serde(rename = "data", with = "Base64Standard")]
-    raw_data: Vec<u8>,
-    partition_key: String,
-    sequence_number: String,
-    sub_sequence_number: Option<u64>,
-    approximate_arrival_timestamp: f64,
+    pub raw_data: Vec<u8>,
+    pub partition_key: String,
+    pub sequence_number: String,
+    pub sub_sequence_number: Option<u64>,
+    pub approximate_arrival_timestamp: f64,
 }
 
 impl Record {
