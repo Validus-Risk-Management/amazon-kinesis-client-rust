@@ -1,3 +1,5 @@
+#[cfg(feature = "dynamodb-events")]
+pub mod kinesis_dynamodb;
 pub(crate) mod messages;
 pub(crate) mod processor;
 pub mod reader;

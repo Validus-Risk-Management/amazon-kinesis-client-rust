@@ -1,10 +1,12 @@
 use base64::STANDARD;
-
 use base64_serde::base64_serde_type;
 use eyre::Result;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::Result as JsonResult;
+
+#[cfg(feature = "dynamodb-events")]
+use crate::kinesis_dynamodb::DynamoDBPayload;
 
 base64_serde_type!(Base64Standard, STANDARD);
 
@@ -46,6 +48,11 @@ impl Record {
     pub fn json<T: DeserializeOwned>(&self) -> JsonResult<T> {
         serde_json::from_slice::<T>(self.raw_data.as_slice())
     }
+
+    #[cfg(feature = "dynamodb-events")]
+    pub fn dynamodb_event(&self) -> JsonResult<DynamoDBPayload> {
+        serde_json::from_slice::<DynamoDBPayload>(self.raw_data.as_slice())
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -75,6 +82,10 @@ pub(crate) fn parse_message(payload: &str) -> Result<Message> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(feature = "dynamodb-events")]
+    use aws_lambda_events::dynamodb::attributes::AttributeValue;
+    #[cfg(feature = "dynamodb-events")]
+    use std::collections::HashMap;
 
     #[derive(Debug, PartialEq, serde::Deserialize)]
     struct DummyPayload {
@@ -182,5 +193,71 @@ mod tests {
 
         let actual = parse_message(given).unwrap();
         assert_eq!(actual, expected)
+    }
+
+    #[cfg(feature = "dynamodb-events")]
+    #[test]
+    fn parse_dynamodb_process_record() {
+        let given = "{\"action\": \"processRecords\", \
+        \"records\": [{\
+            \"data\": \"eyJhd3NSZWdpb24iOiJldS13ZXN0LTEiLCJldmVudElEIjoiOGFmMzhlOGUtZTIxMy00YjUyLWEwZWEtNzcxNDhiMGEwNzZkIiwiZXZlbnROYW1lIjoiSU5TRVJUIiwidXNlcklkZW50aXR5IjpudWxsLCJyZWNvcmRGb3JtYXQiOiJhcHBsaWNhdGlvbi9qc29uIiwidGFibGVOYW1lIjoidGVzdF90YWJsZSIsImR5bmFtb2RiIjp7IkFwcHJveGltYXRlQ3JlYXRpb25EYXRlVGltZSI6MTY2ODQxNjg2NjUyMCwiS2V5cyI6eyJuIjp7IlMiOiJwYXJ0aXRpb25fa2V5In0sInQiOnsiUyI6InNvcnRfa2V5In19LCJOZXdJbWFnZSI6eyJhIjp7Ik0iOnsieCI6eyJOIjoiMTQwLjE3In0sImMiOnsiTiI6IjE1In19fSwidHRsIjp7Ik4iOiIxNjY4ODQ4ODY2In0sInQiOnsiUyI6InNvcnRfa2V5In0sIm4iOnsiUyI6InBhcnRpdGlvbl9rZXkifX0sIlNpemVCeXRlcyI6MjA2fSwiZXZlbnRTb3VyY2UiOiJhd3M6ZHluYW1vZGIifQ==\",\
+            \"partitionKey\": \"1\",\
+            \"sequenceNumber\": \"49590338271490256608559692538361571095921575989136588898\",\
+            \"approximateArrivalTimestamp\": 1570887011763.01}]}";
+        let parsed = parse_message(given).unwrap();
+
+        if let Message::ProcessRecords(ProcessRecordPayload { records }) = parsed {
+            assert_eq!(records.len(), 1);
+            let actual = records[0].dynamodb_event().unwrap();
+            let expected = DynamoDBPayload {
+                dynamodb: aws_lambda_events::dynamodb::StreamRecord {
+                    // TODO this timestamp is currently parsed in seconds instead of ms
+                    // So it looks like "+54840-01-10T09:35:20Z"
+                    approximate_creation_date_time: Default::default(),
+                    keys: HashMap::from([
+                        (
+                            "n".to_string(),
+                            AttributeValue::String("partition_key".to_string()),
+                        ),
+                        (
+                            "t".to_string(),
+                            AttributeValue::String("sort_key".to_string()),
+                        ),
+                    ]),
+                    new_image: HashMap::from([
+                        (
+                            "a".to_string(),
+                            AttributeValue::AttributeMap(HashMap::from([
+                                ("x".to_string(), AttributeValue::Number(140.17)),
+                                ("c".to_string(), AttributeValue::Number(15.0)),
+                            ])),
+                        ),
+                        ("ttl".to_string(), AttributeValue::Number(1668848866.0)),
+                        (
+                            "t".to_string(),
+                            AttributeValue::String("sort_key".to_string()),
+                        ),
+                        (
+                            "n".to_string(),
+                            AttributeValue::String("partition_key".to_string()),
+                        ),
+                    ]),
+                    old_image: Default::default(),
+                    sequence_number: None,
+                    size_bytes: 206,
+                    stream_view_type: None,
+                },
+                aws_region: "eu-west-1".to_string(),
+                event_id: "8af38e8e-e213-4b52-a0ea-77148b0a076d".to_string(),
+                event_name: "INSERT".to_string(),
+                user_identity: None,
+                record_format: "application/json".to_string(),
+                table_name: "test_table".to_string(),
+                event_source: "aws:dynamodb".to_string(),
+            };
+            assert_eq!(expected, actual);
+        } else {
+            panic!("Did not match expected DynamoDB event.");
+        }
     }
 }

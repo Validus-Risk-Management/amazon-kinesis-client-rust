@@ -3,9 +3,14 @@ name = "amazon_kinesis_client"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+dynamodb-events = ["dep:aws_lambda_events", "dep:serde_dynamo"]
+
 [dependencies]
 base64 = "0.13.1"
 base64-serde = "0.6.1"
 eyre = "0.6.8"
 serde = {version = "1.0.147", features = ["derive"] }
 serde_json = "1.0.87"
+aws_lambda_events = { version = "0.7.2", features = ["dynamodb"], optional = true}
+serde_dynamo = { version = "4.0.9", features = [ "aws_lambda_events+0_7" ], optional = true }
