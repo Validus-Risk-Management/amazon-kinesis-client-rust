@@ -1,4 +1,4 @@
-use crate::checkpointer::checkpoint;
+use crate::checkpointer::Checkpointer;
 
 use eyre::Result;
 
@@ -12,17 +12,19 @@ use crate::writer::{write_status, OutputWriter, StdoutWriter};
 
 pub fn run(processor: &mut impl Processor) {
     let mut reader = StdinReader::new();
-    let mut writer = StdoutWriter::new();
+    let mut writer = &StdoutWriter::new();
+    let checkpointer = Checkpointer::new(writer);
 
     loop {
-        tick(processor, &mut reader, &mut writer).unwrap();
+        tick(processor, &mut reader, writer, &mut checkpointer).unwrap();
     }
 }
 
-pub fn tick(
+pub fn tick<T>(
     processor: &mut impl Processor,
     input_reader: &mut impl InputReader,
     output_writer: &mut impl OutputWriter,
+    checkpointer: &mut Checkpointer<T>,
 ) -> Result<()> {
     let next = input_reader.next()?;
     let message = parse_message(&next)?;
