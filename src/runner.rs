@@ -1,6 +1,10 @@
+use crate::checkpointer::checkpoint;
+
 use eyre::Result;
 
-use crate::messages::{parse_message, InitPayload, Message, ProcessRecordPayload};
+use crate::messages::{
+    parse_message, CheckpointWithErrorPayload, InitPayload, Message, ProcessRecordPayload,
+};
 use crate::processor::Processor;
 use crate::reader::{InputReader, StdinReader};
 use crate::responses::StatusResponse;
@@ -35,13 +39,16 @@ fn process_message(processor: &mut impl Processor, message: &Message) {
     match message {
         Message::Initialize(InitPayload { shard_id }) => processor.initialize(shard_id),
         Message::ProcessRecords(ProcessRecordPayload { records }) => {
-            processor.process_records(records)
+            processor.process_records(records, checkpoint)
         }
         Message::LeaseLost => processor.lease_lost(),
-        Message::ShardEnded(_) => processor.shard_ended(),
-        Message::ShutdownRequested(_) => processor.shutdown_requested(),
+        Message::ShardEnded(_) => processor.shard_ended(checkpoint),
+        Message::ShutdownRequested(_) => processor.shutdown_requested(checkpoint),
         // This should only be sent in response to a checkpoint message sent to the daemon,
         // we should never receive it unexpectedly here
-        Message::Checkpoint(_) => panic!("unexpected checkpointing"),
+        Message::Checkpoint(CheckpointWithErrorPayload { checkpoint, error }) => panic!(
+            "unexpected checkpoint: {:?}, error: {:?}",
+            checkpoint, error
+        ),
     }
 }
