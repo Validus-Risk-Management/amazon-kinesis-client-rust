@@ -1,3 +1,5 @@
+pub(crate) mod checkpointer;
+
 pub(crate) mod messages;
 pub(crate) mod processor;
 pub mod reader;

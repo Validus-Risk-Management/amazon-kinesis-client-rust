@@ -63,8 +63,8 @@ pub(crate) struct CheckpointPayload {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct CheckpointWithErrorPayload {
-    checkpoint: String,
-    error: String,
+    pub(crate) checkpoint: String,
+    pub(crate) error: String,
 }
 
 pub(crate) fn parse_message(payload: &str) -> Result<Message> {
