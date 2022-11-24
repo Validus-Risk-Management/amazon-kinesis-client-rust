@@ -1,15 +1,16 @@
 use crate::writer::OutputWriter;
+
 use eyre::Result;
 use serde::Serialize;
 use std::io;
 use std::io::Write;
 
 pub struct Checkpointer<'a, T: OutputWriter> {
-    writer: &'a T,
+    writer: &'a mut T,
 }
 
-impl<'a, T> Checkpointer<'a, T> {
-    pub(crate) fn new(writer: &T) -> Self {
+impl<'a, T: OutputWriter> Checkpointer<'a, T> {
+    pub(crate) fn new(writer: &'a mut T) -> Self {
         Self { writer }
     }
 
@@ -24,6 +25,7 @@ impl<'a, T> Checkpointer<'a, T> {
     /// returns: Result<(), Report>
     ///
     pub fn checkpoint(
+        &mut self,
         sequence_number: Option<String>,
         sub_sequence_number: Option<u64>,
     ) -> Result<()> {
@@ -32,11 +34,8 @@ impl<'a, T> Checkpointer<'a, T> {
             sequence_number,
             sub_sequence_number,
         };
-        let mut out = io::stdout();
         let mut payload = serde_json::to_vec(&message)?;
-        payload.push(b'\n');
-        out.write_all(payload.as_slice())?;
-        out.flush()?;
+        self.writer.write(&payload)?;
 
         Ok(())
     }
