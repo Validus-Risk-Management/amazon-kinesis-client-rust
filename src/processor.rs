@@ -1,7 +1,6 @@
 use crate::checkpointer::Checkpointer;
 use crate::messages::Record;
 use crate::writer::OutputWriter;
-use eyre::Result;
 
 pub trait Processor<T: OutputWriter> {
     fn initialize(&mut self, shard_id: &str);

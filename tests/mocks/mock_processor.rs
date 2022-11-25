@@ -1,3 +1,5 @@
+use crate::mocks::mock_writer::MockWriter;
+use amazon_kinesis_client::checkpointer::Checkpointer;
 use amazon_kinesis_client::{Processor, Record};
 
 pub struct MockProcessor {
@@ -20,12 +22,12 @@ impl MockProcessor {
     }
 }
 
-impl Processor for MockProcessor {
+impl Processor<MockWriter> for MockProcessor {
     fn initialize(&mut self, shard_id: &str) {
         self.shard = Some(shard_id.to_owned())
     }
 
-    fn process_records(&mut self, data: &[Record]) {
+    fn process_records(&mut self, data: &[Record], _checkpointer: &mut Checkpointer<MockWriter>) {
         for record in data {
             self.records.push((*record).clone())
         }
@@ -34,10 +36,10 @@ impl Processor for MockProcessor {
     fn lease_lost(&mut self) {
         self.lease_lost = true;
     }
-    fn shard_ended(&mut self) {
+    fn shard_ended(&mut self, _checkpointer: &mut Checkpointer<MockWriter>) {
         self.shard_ended = true;
     }
-    fn shutdown_requested(&mut self) {
+    fn shutdown_requested(&mut self, _checkpointer: &mut Checkpointer<MockWriter>) {
         self.shutdown_requested = true;
     }
 }

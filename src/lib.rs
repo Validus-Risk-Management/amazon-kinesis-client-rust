@@ -1,4 +1,4 @@
-pub(crate) mod checkpointer;
+pub mod checkpointer;
 
 pub(crate) mod messages;
 pub(crate) mod processor;
