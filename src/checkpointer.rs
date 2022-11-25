@@ -2,8 +2,6 @@ use crate::writer::OutputWriter;
 
 use eyre::Result;
 use serde::Serialize;
-use std::io;
-use std::io::Write;
 
 pub struct Checkpointer<'a, T: OutputWriter> {
     writer: &'a mut T,
@@ -34,7 +32,7 @@ impl<'a, T: OutputWriter> Checkpointer<'a, T> {
             sequence_number,
             sub_sequence_number,
         };
-        let mut payload = serde_json::to_vec(&message)?;
+        let payload = serde_json::to_vec(&message)?;
         self.writer.write(&payload)?;
 
         Ok(())
