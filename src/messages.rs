@@ -63,8 +63,8 @@ pub(crate) struct CheckpointPayload {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct CheckpointWithErrorPayload {
-    pub(crate) checkpoint: String,
-    pub(crate) error: String,
+    pub(crate) checkpoint: Option<String>,
+    pub(crate) error: Option<String>,
 }
 
 pub(crate) fn parse_message(payload: &str) -> Result<Message> {
@@ -145,8 +145,8 @@ mod tests {
     fn parse_checkpoint() {
         let given = "{\"action\": \"checkpoint\", \"checkpoint\": \"1234\", \"error\": \"check your point\"}";
         let expected = Message::Checkpoint(CheckpointWithErrorPayload {
-            checkpoint: "1234".to_string(),
-            error: "check your point".to_string(),
+            checkpoint: Some("1234".to_string()),
+            error: Some("check your point".to_string()),
         });
 
         let actual = parse_message(given).unwrap();

@@ -32,7 +32,8 @@ impl<'a, T: OutputWriter> Checkpointer<'a, T> {
             sequence_number,
             sub_sequence_number,
         };
-        let payload = serde_json::to_vec(&message)?;
+        let mut payload = serde_json::to_vec(&message)?;
+        payload.push(b'\n');
         self.writer.write(&payload)?;
 
         Ok(())
