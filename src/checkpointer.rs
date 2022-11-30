@@ -34,7 +34,7 @@ impl<'a, T: OutputWriter> Checkpointer<'a, T> {
         };
         let mut payload = serde_json::to_vec(&message)?;
         payload.push(b'\n');
-        self.writer.write(&payload)?;
+        self.writer.write(payload.as_slice())?;
 
         Ok(())
     }

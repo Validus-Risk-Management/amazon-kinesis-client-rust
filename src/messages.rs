@@ -4,7 +4,7 @@ use base64_serde::base64_serde_type;
 use eyre::Result;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use serde_json::{Result as JsonResult, Value};
+use serde_json::Result as JsonResult;
 
 base64_serde_type!(Base64Standard, STANDARD);
 
@@ -68,7 +68,6 @@ pub(crate) struct CheckpointWithErrorPayload {
 }
 
 pub(crate) fn parse_message(payload: &str) -> Result<Message> {
-    println!("message to parse: {:?}", payload);
     let message = serde_json::from_str::<Message>(payload)?;
     Ok(message)
 }
