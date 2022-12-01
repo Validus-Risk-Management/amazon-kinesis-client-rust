@@ -1,15 +1,19 @@
 use crate::writer::OutputWriter;
 
-use eyre::Result;
+use crate::messages::Message::Checkpoint;
+use crate::messages::{parse_message, CheckpointWithErrorPayload};
+use crate::reader::InputReader;
+use eyre::{eyre, Result};
 use serde::Serialize;
 
-pub struct Checkpointer<'a, T: OutputWriter> {
-    writer: &'a mut T,
+pub struct Checkpointer<'a, W: OutputWriter, R: InputReader> {
+    writer: &'a mut W,
+    reader: &'a mut R,
 }
 
-impl<'a, T: OutputWriter> Checkpointer<'a, T> {
-    pub(crate) fn new(writer: &'a mut T) -> Self {
-        Self { writer }
+impl<'a, W: OutputWriter, R: InputReader> Checkpointer<'a, W, R> {
+    pub(crate) fn new(writer: &'a mut W, reader: &'a mut R) -> Self {
+        Self { writer, reader }
     }
 
     /// Checkpoints at a particular sequence number you provide or if no sequence number is given, the checkpoint will
@@ -35,8 +39,18 @@ impl<'a, T: OutputWriter> Checkpointer<'a, T> {
         let mut payload = serde_json::to_vec(&message)?;
         payload.push(b'\n');
         self.writer.write(payload.as_slice())?;
-
-        Ok(())
+        let next = self.reader.next()?;
+        let message = parse_message(&next)?;
+        match message {
+            Checkpoint(CheckpointWithErrorPayload {
+                checkpoint: _,
+                error,
+            }) => match error {
+                None => Ok(()),
+                Some(error_message) => Err(eyre!("Checkpointing error: {error_message}")),
+            },
+            _ => Err(eyre!("Expected checkpoint message!")),
+        }
     }
 }
 
