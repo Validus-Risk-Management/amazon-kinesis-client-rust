@@ -10,7 +10,7 @@ use crate::reader::{InputReader, StdinReader};
 use crate::responses::StatusResponse;
 use crate::writer::{write_status, OutputWriter, StdoutWriter};
 
-pub fn run(processor: &mut impl Processor<StdoutWriter>) {
+pub fn run(processor: &mut impl Processor<StdoutWriter, StdinReader>) {
     let mut reader = StdinReader::new();
     let mut writer = StdoutWriter::new();
 
@@ -19,15 +19,15 @@ pub fn run(processor: &mut impl Processor<StdoutWriter>) {
     }
 }
 
-pub fn tick<T: OutputWriter>(
-    processor: &mut impl Processor<T>,
-    input_reader: &mut impl InputReader,
-    output_writer: &mut T,
+pub fn tick<W: OutputWriter, R: InputReader>(
+    processor: &mut impl Processor<W, R>,
+    input_reader: &mut R,
+    output_writer: &mut W,
 ) -> Result<()> {
     let next = input_reader.next()?;
     let message = parse_message(&next)?;
 
-    process_message(processor, &message, output_writer);
+    process_message(processor, &message, output_writer, input_reader);
 
     let status_message = StatusResponse::for_message(message);
     write_status(output_writer, status_message)?;
@@ -35,12 +35,13 @@ pub fn tick<T: OutputWriter>(
     Ok(())
 }
 
-fn process_message<T: OutputWriter>(
-    processor: &mut impl Processor<T>,
+pub(crate) fn process_message<W: OutputWriter, R: InputReader>(
+    processor: &mut impl Processor<W, R>,
     message: &Message,
-    output_writer: &mut T,
+    output_writer: &mut W,
+    input_reader: &mut R,
 ) {
-    let mut checkpointer = Checkpointer::new(output_writer);
+    let mut checkpointer = Checkpointer::new(output_writer, input_reader);
     match message {
         Message::Initialize(InitPayload { shard_id }) => processor.initialize(shard_id),
         Message::ProcessRecords(ProcessRecordPayload { records }) => {

@@ -5,10 +5,11 @@ use eyre::Result;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::Result as JsonResult;
+use thiserror::Error;
 
 base64_serde_type!(Base64Standard, STANDARD);
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq)]
 #[serde(tag = "action")]
 pub(crate) enum Message {
     #[serde(rename = "initialize")]
@@ -60,11 +61,47 @@ pub(crate) struct CheckpointPayload {
     checkpoint: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct CheckpointWithErrorPayload {
-    pub(crate) checkpoint: String,
-    pub(crate) error: String,
+    pub(crate) checkpoint: Option<String>,
+    pub(crate) error: Option<CheckpointError>,
+}
+// For more info, see https://github.com/awslabs/amazon-kinesis-client/tree/master/amazon-kinesis-client/src/main/java/software/amazon/kinesis/exceptions
+#[derive(Debug, Deserialize, PartialEq, Eq, Error)]
+#[serde(field_identifier)]
+pub enum CheckpointError {
+    // This is thrown when the Amazon Kinesis Client Library encounters issues talking to its dependencies
+    // (e.g. fetching data from Kinesis, DynamoDB table reads/writes, emitting metrics to CloudWatch).
+    #[error("KinesisClientLibDependencyException")]
+    KinesisClientLibDependencyException,
+    // Thrown when requests are throttled by a service (e.g. DynamoDB when storing a checkpoint).
+    #[error("ThrottlingException")]
+    ThrottlingException,
+    // This is thrown when the Amazon Kinesis Client Library encounters issues with its internal state
+    // (e.g. DynamoDB table is not found)
+    #[error("InvalidStateException")]
+    InvalidStateException,
+    // The ShardRecordProcessor instance has been shutdown (e.g. and attempts a checkpoint).
+    #[error("ShutdownException")]
+    ShutdownException,
+    // The MultiLang daemon sent us something that is not a checkpoint response, while waiting for one.
+    #[serde(skip)]
+    #[error("UnexpectedResponse")]
+    UnexpectedResponse,
+    // The MultiLang daemon sent us an error that is not defined.
+    #[error("UnknownException: \"{0}\"")]
+    UnknownException(String),
+}
+
+impl CheckpointError {
+    pub fn is_retryable(&self) -> bool {
+        matches!(
+            self,
+            CheckpointError::KinesisClientLibDependencyException
+                | CheckpointError::ThrottlingException
+        )
+    }
 }
 
 pub(crate) fn parse_message(payload: &str) -> Result<Message> {
@@ -75,6 +112,7 @@ pub(crate) fn parse_message(payload: &str) -> Result<Message> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::messages::CheckpointError::InvalidStateException;
 
     #[derive(Debug, PartialEq, serde::Deserialize)]
     struct DummyPayload {
@@ -143,10 +181,10 @@ mod tests {
 
     #[test]
     fn parse_checkpoint() {
-        let given = "{\"action\": \"checkpoint\", \"checkpoint\": \"1234\", \"error\": \"check your point\"}";
+        let given = "{\"action\": \"checkpoint\", \"checkpoint\": \"1234\", \"error\": \"InvalidStateException\"}";
         let expected = Message::Checkpoint(CheckpointWithErrorPayload {
-            checkpoint: "1234".to_string(),
-            error: "check your point".to_string(),
+            checkpoint: Some("1234".to_string()),
+            error: Some(InvalidStateException),
         });
 
         let actual = parse_message(given).unwrap();
