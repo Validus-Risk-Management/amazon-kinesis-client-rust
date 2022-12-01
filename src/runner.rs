@@ -50,14 +50,11 @@ pub(crate) fn process_message<W: OutputWriter, R: InputReader>(
         Message::LeaseLost => processor.lease_lost(),
         Message::ShardEnded(_) => processor.shard_ended(&mut checkpointer),
         Message::ShutdownRequested(_) => processor.shutdown_requested(&mut checkpointer),
-        // This should only be sent in response to a checkpoint message sent to the daemon
-        Message::Checkpoint(CheckpointWithErrorPayload {
-            checkpoint: _,
-            error,
-        }) => {
-            if let Some(error_message) = error {
-                panic!("Checkpointing failed: {:?}", error_message)
-            }
-        }
+        // This should only be sent in response to a checkpoint message sent to the daemon,
+        // we should never receive it unexpectedly here
+        Message::Checkpoint(CheckpointWithErrorPayload { checkpoint, error }) => panic!(
+            "unexpected checkpoint: {:?}, error: {:?}",
+            checkpoint, error
+        ),
     }
 }
