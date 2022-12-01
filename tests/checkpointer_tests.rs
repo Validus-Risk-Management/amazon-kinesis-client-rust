@@ -113,7 +113,7 @@ fn test_checkpoint_shutdown_exception() {
 }
 
 #[test]
-#[should_panic(expected = "UnknownException, retryable: false")]
+#[should_panic(expected = "UnknownException: \"check your point\", retryable: false")]
 fn test_checkpoint_unknown_error_exception() {
     let message = "{\"action\" :\"processRecords\", \"records\": []}";
     let checkpoint_response =

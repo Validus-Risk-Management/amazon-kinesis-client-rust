@@ -9,7 +9,7 @@ use thiserror::Error;
 
 base64_serde_type!(Base64Standard, STANDARD);
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq)]
 #[serde(tag = "action")]
 pub(crate) enum Message {
     #[serde(rename = "initialize")]
@@ -61,14 +61,15 @@ pub(crate) struct CheckpointPayload {
     checkpoint: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct CheckpointWithErrorPayload {
     pub(crate) checkpoint: Option<String>,
     pub(crate) error: Option<CheckpointError>,
 }
 // For more info, see https://github.com/awslabs/amazon-kinesis-client/tree/master/amazon-kinesis-client/src/main/java/software/amazon/kinesis/exceptions
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Error)]
+#[derive(Debug, Deserialize, PartialEq, Eq, Error)]
+#[serde(field_identifier)]
 pub enum CheckpointError {
     // This is thrown when the Amazon Kinesis Client Library encounters issues talking to its dependencies
     // (e.g. fetching data from Kinesis, DynamoDB table reads/writes, emitting metrics to CloudWatch).
@@ -89,9 +90,8 @@ pub enum CheckpointError {
     #[error("UnexpectedResponse")]
     UnexpectedResponse,
     // The MultiLang daemon sent us an error that is not defined.
-    #[serde(other)]
-    #[error("UnknownException")]
-    UnknownException,
+    #[error("UnknownException: \"{0}\"")]
+    UnknownException(String),
 }
 
 impl CheckpointError {
@@ -102,7 +102,7 @@ impl CheckpointError {
             CheckpointError::InvalidStateException => false,
             CheckpointError::ShutdownException => false,
             CheckpointError::UnexpectedResponse => false,
-            CheckpointError::UnknownException => false,
+            CheckpointError::UnknownException(_) => false,
         }
     }
 }
