@@ -96,14 +96,11 @@ pub enum CheckpointError {
 
 impl CheckpointError {
     pub fn is_retryable(&self) -> bool {
-        match self {
-            CheckpointError::KinesisClientLibDependencyException => true,
-            CheckpointError::ThrottlingException => true,
-            CheckpointError::InvalidStateException => false,
-            CheckpointError::ShutdownException => false,
-            CheckpointError::UnexpectedResponse => false,
-            CheckpointError::UnknownException(_) => false,
-        }
+        matches!(
+            self,
+            CheckpointError::KinesisClientLibDependencyException
+                | CheckpointError::ThrottlingException
+        )
     }
 }
 
