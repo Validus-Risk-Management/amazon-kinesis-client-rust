@@ -1,13 +1,8 @@
 use kcl::writer::OutputWriter;
 
+#[derive(Default)]
 pub struct MockWriter {
     pub outputs: Vec<String>,
-}
-
-impl MockWriter {
-    pub(crate) fn new() -> Self {
-        Self { outputs: vec![] }
-    }
 }
 
 impl OutputWriter for MockWriter {

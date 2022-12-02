@@ -3,24 +3,13 @@ use crate::mocks::mock_writer::MockWriter;
 use kcl::checkpointer::Checkpointer;
 use kcl::{Processor, Record};
 
+#[derive(Default)]
 pub struct MockProcessor {
     pub shard: Option<String>,
     pub records: Vec<Record>,
     pub lease_lost: bool,
     pub shard_ended: bool,
     pub shutdown_requested: bool,
-}
-
-impl MockProcessor {
-    pub fn new() -> Self {
-        Self {
-            shard: None,
-            records: vec![],
-            lease_lost: false,
-            shard_ended: false,
-            shutdown_requested: false,
-        }
-    }
 }
 
 impl Processor<MockWriter, MockReader> for MockProcessor {
@@ -49,24 +38,13 @@ impl Processor<MockWriter, MockReader> for MockProcessor {
     }
 }
 
+#[derive(Default)]
 pub struct MockCheckpointingProcessor {
     pub shard: Option<String>,
     pub records: Vec<Record>,
     pub lease_lost: bool,
     pub shard_ended: bool,
     pub shutdown_requested: bool,
-}
-
-impl MockCheckpointingProcessor {
-    pub fn new() -> Self {
-        Self {
-            shard: None,
-            records: vec![],
-            lease_lost: false,
-            shard_ended: false,
-            shutdown_requested: false,
-        }
-    }
 }
 
 impl Processor<MockWriter, MockReader> for MockCheckpointingProcessor {

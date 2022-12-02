@@ -7,9 +7,9 @@ use crate::mocks::mock_reader::MockReader;
 use crate::mocks::mock_writer::MockWriter;
 
 fn tick_into_processor(message: &str) -> (MockProcessor, MockWriter) {
-    let mut processor = MockProcessor::new();
+    let mut processor = MockProcessor::default();
     let mut reader = MockReader::with_input(message.to_string());
-    let mut writer = MockWriter::new();
+    let mut writer = MockWriter::default();
 
     tick(&mut processor, &mut reader, &mut writer).unwrap();
 

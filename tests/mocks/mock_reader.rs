@@ -1,19 +1,14 @@
 use kcl::reader::InputReader;
 use std::collections::VecDeque;
 
+#[derive(Default)]
 pub struct MockReader {
     lines: VecDeque<String>,
 }
 
 impl MockReader {
-    pub fn new() -> Self {
-        Self {
-            lines: VecDeque::new(),
-        }
-    }
-
     pub fn with_input(input: String) -> Self {
-        let mut reader = Self::new();
+        let mut reader = Self::default();
         reader.add_input(input);
 
         reader

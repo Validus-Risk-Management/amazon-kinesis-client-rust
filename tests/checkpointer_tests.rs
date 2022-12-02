@@ -9,11 +9,11 @@ fn tick_into_processor(
     message: &str,
     checkpoint_response: &str,
 ) -> (MockCheckpointingProcessor, MockWriter) {
-    let mut processor = MockCheckpointingProcessor::new();
+    let mut processor = MockCheckpointingProcessor::default();
     let mut reader = MockReader::with_input(message.to_string());
     reader.add_input(checkpoint_response.to_string());
 
-    let mut writer = MockWriter::new();
+    let mut writer = MockWriter::default();
 
     tick(&mut processor, &mut reader, &mut writer).unwrap();
 
