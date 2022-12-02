@@ -36,11 +36,11 @@ impl<'a, W: OutputWriter, R: InputReader> Checkpointer<'a, W, R> {
             sequence_number,
             sub_sequence_number,
         };
-        let mut payload = serde_json::to_vec(&message).unwrap();
+        let mut payload = serde_json::to_vec(&message)?;
         payload.push(b'\n');
-        self.writer.write(payload.as_slice()).unwrap();
-        let next = self.reader.next().unwrap();
-        let message = parse_message(&next).unwrap();
+        self.writer.write(payload.as_slice())?;
+        let next = self.reader.next()?;
+        let message = parse_message(&next)?;
         match message {
             Checkpoint(CheckpointWithErrorPayload {
                 checkpoint: _,
