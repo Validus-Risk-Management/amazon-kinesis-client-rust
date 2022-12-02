@@ -89,9 +89,21 @@ pub enum CheckpointError {
     #[serde(skip)]
     #[error("UnexpectedResponse")]
     UnexpectedResponse,
-    // The MultiLang daemon sent us an error that is not defined.
-    #[error("UnknownException: \"{0}\"")]
-    UnknownException(String),
+    // A catch-all exception for other errors, e,g, the MultiLang daemon sent us an error that is not defined.
+    #[error("Exception: \"{0}\"")]
+    Exception(String),
+}
+
+impl From<eyre::Report> for CheckpointError {
+    fn from(e: eyre::Report) -> Self {
+        CheckpointError::Exception(e.to_string())
+    }
+}
+
+impl From<serde_json::Error> for CheckpointError {
+    fn from(e: serde_json::Error) -> Self {
+        CheckpointError::Exception(e.to_string())
+    }
 }
 
 impl CheckpointError {
