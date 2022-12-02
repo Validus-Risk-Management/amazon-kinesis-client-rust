@@ -3,7 +3,7 @@ mod mocks;
 use crate::mocks::mock_processor::MockCheckpointingProcessor;
 use crate::mocks::mock_reader::MockReader;
 use crate::mocks::mock_writer::MockWriter;
-use amazon_kinesis_client::tick;
+use kcl::tick;
 
 fn tick_into_processor(
     message: &str,

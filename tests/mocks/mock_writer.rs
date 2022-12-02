@@ -1,4 +1,4 @@
-use amazon_kinesis_client::writer::OutputWriter;
+use kcl::writer::OutputWriter;
 
 pub struct MockWriter {
     pub outputs: Vec<String>,

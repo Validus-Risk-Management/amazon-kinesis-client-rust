@@ -1,4 +1,4 @@
-use amazon_kinesis_client::reader::InputReader;
+use kcl::reader::InputReader;
 use std::collections::VecDeque;
 
 pub struct MockReader {

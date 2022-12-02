@@ -1,7 +1,7 @@
 use crate::mocks::mock_reader::MockReader;
 use crate::mocks::mock_writer::MockWriter;
-use amazon_kinesis_client::checkpointer::Checkpointer;
-use amazon_kinesis_client::{Processor, Record};
+use kcl::checkpointer::Checkpointer;
+use kcl::{Processor, Record};
 
 pub struct MockProcessor {
     pub shard: Option<String>,

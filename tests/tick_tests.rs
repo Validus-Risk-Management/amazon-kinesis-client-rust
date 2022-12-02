@@ -1,6 +1,6 @@
 mod mocks;
 
-use amazon_kinesis_client::tick;
+use kcl::tick;
 
 use crate::mocks::mock_processor::MockProcessor;
 use crate::mocks::mock_reader::MockReader;
