@@ -1,12 +1,26 @@
 [package]
 name = "amazon_kinesis_client"
 version = "0.3.1"
+authors = ["David Steiner <david_j_steiner@yahoo.co.nz", "Fergus Strangways-Dixon <fergusdixon101@gmail.com>"]
 edition = "2021"
+license = "MIT"
+description = "a Rust interface to the Amazon Kinesis Client Library (KCL) MultiLangDaemon"
+readme = "README.md"
+homepage = "https://github.com/Validus-Risk-Management/amazon-kinesis-client-rust"
+repository = "https://github.com/Validus-Risk-Management/amazon-kinesis-client-rust"
+keywords = ["aws", "kinesis"]
+exclude = [
+    ".dockerignore",
+    ".github/*",
+    ".pre-commit-config.yaml",
+    "Dockerfile",
+    "docker-bake.hcl",
+]
 
 [dependencies]
 base64 = "0.13.1"
 base64-serde = "0.6.1"
 eyre = "0.6.8"
-serde = {version = "1.0.147", features = ["derive"] }
+serde = { version = "1.0.147", features = ["derive"] }
 serde_json = "1.0.87"
 thiserror = "1.0.37"
