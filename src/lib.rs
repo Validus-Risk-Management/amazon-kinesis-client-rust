@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 pub mod checkpointer;
 
 pub(crate) mod messages;
