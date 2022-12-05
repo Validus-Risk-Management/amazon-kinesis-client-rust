@@ -14,6 +14,49 @@ There is a provided Docker image that sets up the correct JARs using the [Amazon
 A settings file is also required for the MultiLangDaemon to correctly set up your processor.
 A sample of this can be found in the [examples][example-properties].
 
+
+## Basic Usage
+
+A more complete example can be found in the [example][example-consumer]
+
+```rust no_run
+use kcl::checkpointer::Checkpointer;
+use kcl::reader::StdinReader;
+use kcl::writer::StdoutWriter;
+use kcl::{run, Processor, Record};
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+struct DummyPayload;
+struct BaseApp;
+
+impl Processor<StdoutWriter, StdinReader> for BaseApp {
+    fn initialize(&mut self, _shard_id: &str) {}
+
+    fn process_records(
+        &mut self,
+        data: &[Record],
+        _checkpointer: &mut Checkpointer<StdoutWriter, StdinReader>,
+    ) {
+        for record in data {
+            match record.json::<DummyPayload>() {
+                Ok(data) => {}
+                Err(e) => {}
+            }
+        }
+    }
+    fn lease_lost(&mut self) {}
+    fn shard_ended(&mut self, _checkpointer: &mut Checkpointer<StdoutWriter, StdinReader>) {}
+    fn shutdown_requested(&mut self, _checkpointer: &mut Checkpointer<StdoutWriter, StdinReader>) {}
+}
+
+fn main() {
+    run(&mut BaseApp {});
+}
+
+```
+
+
 ## Docker
 
 An example consumer of this Docker Image would be:
@@ -47,5 +90,6 @@ Additional configuration can be found [here][kcl-cli-params].
 [kinesis-python]: https://github.com/awslabs/amazon-kinesis-client-python
 [kcl-cli-params]: https://github.com/awslabs/amazon-kinesis-client-python/blob/v2.0.6/samples/amazon_kclpy_helper.py
 [example-properties]: https://github.com/Validus-Risk-Management/amazon-kinesis-client-rust/blob/main/examples/sample.properties
+[example-consumer]: https://github.com/Validus-Risk-Management/amazon-kinesis-client-rust/blob/main/examples/example_consumer/main.rs
 [crates-badge]: https://img.shields.io/crates/v/kcl.svg
 [docs-badge]: https://docs.rs/kcl/badge.svg
