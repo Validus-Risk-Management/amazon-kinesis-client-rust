@@ -1,4 +1,7 @@
 # Amazon Kinesis Client Library for Rust
+[![crates-badge]](https://crates.io/crates/kcl)
+[![docs-badge]](https://docs.rs/kcl)
+[![Crates.io](https://img.shields.io/crates/l/kcl)](LICENSE)
 
 This package provides a Rust interface to the Amazon Kinesis Client Library (KCL) MultiLangDaemon,
 which is part of the [Amazon KCL for Java][kinesis-github].
@@ -44,3 +47,5 @@ Additional configuration can be found [here][kcl-cli-params].
 [kinesis-python]: https://github.com/awslabs/amazon-kinesis-client-python
 [kcl-cli-params]: https://github.com/awslabs/amazon-kinesis-client-python/blob/v2.0.6/samples/amazon_kclpy_helper.py
 [example-properties]: https://github.com/Validus-Risk-Management/amazon-kinesis-client-rust/blob/main/examples/sample.properties
+[crates-badge]: https://img.shields.io/crates/v/kcl.svg
+[docs-badge]: https://docs.rs/kcl/badge.svg
